@@ -136,9 +136,11 @@ function renderCategories(){
 }
 
 function setCategory(id){
-  activeCategory = id;
-  document.getElementById('clearFilterBtn').hidden = !id;
+  activeCategory = (activeCategory === id) ? null : id;
+  document.getElementById('clearFilterBtn').hidden = !activeCategory;
   render();
+  const target = document.getElementById('listTitle');
+  if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function renderDocs(){
@@ -376,3 +378,4 @@ function copyShareLink(){
 document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', (e)=>{ if(e.target===ov) ov.classList.remove('show'); });
 });
+    
