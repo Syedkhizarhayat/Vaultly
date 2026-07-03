@@ -134,6 +134,7 @@ html[data-theme="dark"] .tag{ background:rgba(16,185,129,0.15); color:#34D399; b
 .section-title{
   display:flex; align-items:center; justify-content:space-between;
   margin-bottom:16px;
+  scroll-margin-top:90px;
 }
 .section-title h2{ font-size:16px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:0; font-weight:600; }
 .clear-filter{ font-size:12.5px; color:#6366F1; background:none; border:none; font-weight:600; }
@@ -301,4 +302,5 @@ html[data-theme="dark"] .tag{ background:rgba(16,185,129,0.15); color:#34D399; b
   .hero{padding:26px 22px; gap:24px;}
   main{padding:24px 16px 60px;}
   .add-btn span{display:none;}
-  }
+       }
+  
