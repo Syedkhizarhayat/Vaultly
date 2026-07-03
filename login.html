@@ -17,6 +17,21 @@
     <h1 id="formTitle">Welcome back</h1>
     <p class="sub" id="formSub">Log in to access your vault</p>
 
+    <div id="signupExtra" style="display:none;">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="fullName" placeholder="Your full name">
+      </div>
+      <div class="field">
+        <label>Date of Birth</label>
+        <input type="date" id="dob">
+      </div>
+      <div class="field">
+        <label>ID Card Number</label>
+        <input type="text" id="idCardNumber" placeholder="e.g. CNIC number">
+      </div>
+    </div>
+
     <div class="field">
       <label>Email</label>
       <input type="email" id="email" placeholder="you@example.com">
@@ -24,6 +39,10 @@
     <div class="field">
       <label>Password</label>
       <input type="password" id="password" placeholder="At least 6 characters">
+    </div>
+    <div class="field" id="confirmPasswordField" style="display:none;">
+      <label>Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Re-enter your password">
     </div>
     <div class="error-text" id="errorText"></div>
 
@@ -49,6 +68,8 @@ function toggleMode(){
   document.getElementById('submitBtn').textContent = isSignup ? 'Sign Up' : 'Log In';
   document.getElementById('switchText').textContent = isSignup ? 'Already have an account?' : "Don't have an account?";
   document.getElementById('switchBtn').textContent = isSignup ? 'Log in' : 'Sign up';
+  document.getElementById('signupExtra').style.display = isSignup ? 'block' : 'none';
+  document.getElementById('confirmPasswordField').style.display = isSignup ? 'block' : 'none';
   document.getElementById('errorText').textContent = '';
 }
 
@@ -57,11 +78,29 @@ async function handleSubmit(){
   const password = document.getElementById('password').value;
   const errorText = document.getElementById('errorText');
   const btn = document.getElementById('submitBtn');
+  errorText.style.color = '';
   errorText.textContent = '';
 
   if(!email || !password){
     errorText.textContent = 'Please fill in both fields.';
     return;
+  }
+
+  let fullName, dob, idCardNumber;
+  if(isSignup){
+    fullName = document.getElementById('fullName').value.trim();
+    dob = document.getElementById('dob').value;
+    idCardNumber = document.getElementById('idCardNumber').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if(!fullName || !dob || !idCardNumber){
+      errorText.textContent = 'Please fill in Name, Date of Birth, and ID Card Number.';
+      return;
+    }
+    if(password !== confirmPassword){
+      errorText.textContent = 'Passwords do not match.';
+      return;
+    }
   }
 
   btn.disabled = true;
@@ -72,11 +111,20 @@ async function handleSubmit(){
       const { data, error } = await sb.auth.signUp({ email, password });
       if(error) throw error;
 
+      // Save the extra profile details (safe to attempt even if email confirmation is pending)
+      if(data.user){
+        await sb.from('profiles').upsert({
+          id: data.user.id,
+          full_name: fullName,
+          date_of_birth: dob,
+          id_card_number: idCardNumber,
+          email: email
+        });
+      }
+
       if(data.session){
-        // Email confirmation is OFF in your Supabase project — go straight in
         window.location.href = 'index.html';
       }else{
-        // Email confirmation is ON — Supabase sent a confirmation email
         errorText.style.color = '#059669';
         errorText.textContent = 'Account created! Please check your email to confirm, then log in.';
         btn.disabled = false;
@@ -107,4 +155,4 @@ document.getElementById('password').addEventListener('keydown', e=>{
 });
 </script>
 </body>
-</html>
+  </html>
