@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaultly — Your Personal Document Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('vaultly-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));</script>
+</head>
+<body>
+
+<header>
+  <div class="brand"><div class="brand-mark">V</div>Vaultly</div>
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="searchInput" type="text" placeholder="Search your documents...">
+  </div>
+  <div class="header-right">
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" onclick="toggleTheme()"></button>
+    <button class="icon-btn" title="Log out" onclick="logout()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+    </button>
+    <button class="add-btn" onclick="openUploadModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Add Document</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="dial-wrap">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <defs>
+          <linearGradient id="dialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366F1"/>
+            <stop offset="50%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#D97706"/>
+          </linearGradient>
+        </defs>
+        <circle class="dial-track" cx="75" cy="75" r="62"/>
+        <circle id="dialFill" class="dial-fill" cx="75" cy="75" r="62" stroke-dasharray="389.6" stroke-dashoffset="389.6"/>
+      </svg>
+      <div class="dial-center">
+        <div class="num"><span id="dialCount">0</span>/20</div>
+        <div class="label">Slots used</div>
+      </div>
+    </div>
+    <div class="hero-text">
+      <h1>Your personal vault</h1>
+      <p>ID cards, passports, results, CVs, ATM cards — everything in one place, private and accessible only to you. Upload, download, share, or delete — all fully in your control.</p>
+      <div class="hero-tags">
+        <span class="tag">🔒 Private by default</span>
+        <span class="tag">📁 Max 20 documents</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-title">
+    <h2>Categories</h2>
+    <button class="clear-filter" id="clearFilterBtn" onclick="setCategory(null)" hidden>Show all ✕</button>
+  </div>
+  <div class="cat-grid" id="catGrid"></div>
+
+  <div class="section-title">
+    <h2 id="listTitle">All Documents</h2>
+    <select class="sort-select" id="sortSelect" onchange="renderDocs()">
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+  <div id="docListWrap"></div>
+</main>
+
+<!-- Upload Modal -->
+<div class="overlay" id="uploadOverlay">
+  <div class="modal">
+    <h3>Add a document</h3>
+    <div class="field">
+      <label>Category</label>
+      <select id="uploadCategory"></select>
+    </div>
+    <div class="field">
+      <label>Display name (optional)</label>
+      <input type="text" id="uploadName" placeholder="e.g. CNIC Front Side">
+    </div>
+    <div class="field">
+      <label>File</label>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        Tap to choose a file
+      </div>
+      <input type="file" id="fileInput" style="display:none">
+      <div class="upload-or">or</div>
+      <button type="button" class="scan-btn" onclick="document.getElementById('cameraInput').click()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V6a2 2 0 0 1 2-2h2M4 16v2a2 2 0 0 0 2 2h2M20 8V6a2 2 0 0 0-2-2h-2M20 16v2a2 2 0 0 1-2 2h-2"/><circle cx="12" cy="12" r="3.5"/></svg>
+        Scan with Camera
+      </button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+      <label class="enhance-row" id="enhanceRow" style="display:none;">
+        <input type="checkbox" id="enhanceCheck" checked>
+        <span>Enhance for scanning (sharper, cleaner look)</span>
+      </label>
+    </div>
+    <p class="note">Your file is uploaded securely to your own private storage and stays there until you delete it.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn-primary" id="saveBtn" disabled onclick="saveDocument()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="overlay" id="shareOverlay">
+  <div class="modal">
+    <h3>Share document</h3>
+    <div class="share-link-box">
+      <span id="shareLinkText">generating link...</span>
+      <button class="copy-btn" onclick="copyShareLink()">Copy</button>
+    </div>
+    <p class="note">Anyone with this link can view or download the file, so only share it with people you trust.</p>
+    <div class="modal-actions">
+      <button class="btn-primary" style="flex:none; width:100%;" onclick="closeShareModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Your app's files -->
+<script src="js/supabase-config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/app.js"></script>
+</body>
+  </html>
