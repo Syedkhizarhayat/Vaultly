@@ -44,6 +44,9 @@
       <label>Confirm Password</label>
       <input type="password" id="confirmPassword" placeholder="Re-enter your password">
     </div>
+    <div class="auth-switch" id="forgotPasswordRow" style="margin-top:-8px; margin-bottom:6px;">
+      <button onclick="handleForgotPassword()" id="forgotBtn">Forgot password?</button>
+    </div>
     <div class="error-text" id="errorText"></div>
 
     <button class="btn-primary" style="width:100%;" id="submitBtn" onclick="handleSubmit()">Log In</button>
@@ -70,7 +73,36 @@ function toggleMode(){
   document.getElementById('switchBtn').textContent = isSignup ? 'Log in' : 'Sign up';
   document.getElementById('signupExtra').style.display = isSignup ? 'block' : 'none';
   document.getElementById('confirmPasswordField').style.display = isSignup ? 'block' : 'none';
+  document.getElementById('forgotPasswordRow').style.display = isSignup ? 'none' : 'block';
   document.getElementById('errorText').textContent = '';
+}
+
+async function handleForgotPassword(){
+  const email = document.getElementById('email').value.trim();
+  const errorText = document.getElementById('errorText');
+  errorText.style.color = '';
+
+  if(!email){
+    errorText.textContent = 'Please enter your email above first, then tap "Forgot password?".';
+    return;
+  }
+
+  const forgotBtn = document.getElementById('forgotBtn');
+  forgotBtn.disabled = true;
+  forgotBtn.textContent = 'Sending...';
+
+  try{
+    const redirectTo = window.location.origin + window.location.pathname.replace('login.html', 'reset-password.html');
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    if(error) throw error;
+    errorText.style.color = '#059669';
+    errorText.textContent = 'Reset link sent! Check your email inbox (and spam folder).';
+  }catch(e){
+    errorText.style.color = '';
+    errorText.textContent = e.message || 'Could not send reset email.';
+  }
+  forgotBtn.disabled = false;
+  forgotBtn.textContent = 'Forgot password?';
 }
 
 async function handleSubmit(){
